@@ -1,0 +1,59 @@
+@using project.ViewModels
+@inject IActorService _actorService;
+@inject NavigationManager _navigationManager;
+@inject IMessagingService _messagingService;
+
+<div class="container">
+    <h2 class="bg-primary text-white"><label for="SearchBox">Actor Search</label></h2>
+    <div class="row">
+        <div class="col-9">
+            <input id="search-box" @bind-value="@toSearch"/>
+        </div>
+        <div class="col-3">
+            <button type="button" class="btn btn-primary" @onclick="() => FilterChangedAsync()">Search</button>
+        </div>
+    </div>
+    <div class="row">
+        <ul class="search-result">
+            @foreach (var actor in filteredActors)
+            {
+                <li @onclick="@(() => OnSelect(actor))">
+                    <a>
+                        @actor.first_name @actor.last_name.ToUpper() (@actor.country_code)
+                    </a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+@code {
+
+    string toSearch;
+
+    List<ActorCountryDto> filteredActors = new List<ActorCountryDto>();
+
+    private async void FilterChangedAsync()
+    {
+        if (toSearch == "")
+        {
+            filteredActors = new List<ActorCountryDto>();
+            return;
+        }
+        filteredActors = await Search(toSearch);
+    }
+
+    private async Task<List<ActorCountryDto>> Search(string text)
+    {
+        await _messagingService.Add("AppActorSearch component: Searching for " + text);
+        return await _actorService.Search(text, text, text);
+    }
+
+    private async Task OnSelect(ActorCountryDto a)
+    {
+        await _messagingService.Add("Actor selected " + a.first_name + " "
+            + a.last_name + " (" + a.id + ")");
+        _navigationManager.NavigateTo("/actordetail/" + a.id);
+    }
+
+}

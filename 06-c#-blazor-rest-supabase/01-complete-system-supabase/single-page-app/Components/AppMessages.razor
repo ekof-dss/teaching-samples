@@ -1,0 +1,46 @@
+@inject IMessagingService _messagingService
+<div class="container">
+    <h2>Messages</h2>
+    <button class="btn btn-primary" @onclick="clearMessages">Clear</button>
+    @foreach (var msg in Messages)
+    {
+        <div class="row text-info"><small>@msg</small></div>
+    }
+</div>
+@code
+{
+    private List<string> Messages;
+
+    protected override void OnInitialized()
+    {
+        Messages = _messagingService.Get();
+        _messagingService.OnMessagesChanged += RenderMessages;
+        _messagingService.OnMessagesChanged += WriteMessagesToConsole;
+    }
+
+    private async void RenderMessages(object sender, List<string> newMessages)
+    {
+        await InvokeAsync(() =>
+        {
+            Messages = newMessages;
+            // tell blazor to re-render the UI
+            StateHasChanged();
+        });
+    }
+
+    private async void WriteMessagesToConsole(object sender, List<string> newMessages)
+    {
+        await InvokeAsync(() =>
+        {
+            Console.WriteLine("--- Messages ---");
+            foreach(string m in newMessages)
+                Console.WriteLine(m);
+            Console.WriteLine("----------------");
+        });
+    }
+
+    private async void clearMessages()
+    {
+        await _messagingService.Clear();
+    }
+}

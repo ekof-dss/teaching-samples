@@ -1,0 +1,164 @@
+@page "/countries"
+
+@inject ICountryService _countryService
+@inject IMessagingService _messagingService
+@inject NavigationManager _navigationManager
+
+@if (_countries == null)
+{
+    <p><em>Loading countires...</em></p>
+}
+else
+{
+    <div class="container">
+        <h2 class="bg-primary text-white">All countries</h2>
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th class="underlineHover" @onclick="@(() => Reorder("Id"))">Id</th>
+                    <th class="underlineHover" @onclick="@(() => Reorder("CountryName"))">Country name</th>
+                    <th class="underlineHover" @onclick="@(() => Reorder("CountryCode"))" colspan="2">Country code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>&nbsp;</td>
+                    <td>
+                        <input @bind="CountryName" />
+                    </td>
+                    <td>
+                        <input @bind="CountryCode" />
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-primary" @onclick="Add"> Add</button>
+                    </td>
+                </tr>
+                @foreach (var c in _countries)
+                {
+                    <tr>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(c))">
+                                <span class="badge">@c.countryId</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(c))">
+                                @c.countryName
+                            </span>
+                        </td>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(c))"> @c.countryCode </span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary" @onclick="@(()=>Delete(c))">x</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+<CountryDetail></CountryDetail>
+
+@code
+{
+    private List<Country> _countries;
+
+    private Country _selectedCountry;
+
+    private bool? _idAscending = null;
+    private bool? _countryNameAscending = null;
+    private bool? _countryCodeAscending = null;
+
+    private string CountryName { get; set; } = "";
+    private string CountryCode { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = await _countryService.GetCountries();
+    }
+
+    private async Task OnSelect(Country country)
+    {
+        await _messagingService.Add("Country selected: " + country.countryId + " "
+        + country.countryName);
+        _navigationManager.NavigateTo("countrydetail/" + country.countryId);
+    }
+
+    private async Task Add()
+    {
+        await _countryService.Add(CountryName, CountryCode);
+        _countries = await _countryService.GetCountries();
+        await _messagingService.Add("Country added: "
+        + CountryName + " " + CountryCode);
+    }
+
+    private async Task Delete(Country country)
+    {
+        await _countryService.Delete(country.countryId);
+        _countries = await _countryService.GetCountries();
+        await _messagingService.Add("Country deleted: " + country.countryId + " "
+        + country.countryName + " " + country.countryCode);
+    }
+
+    private async Task ConutryChanged(ChangeEventArgs e)
+    {
+        List<Country> countries = await _countryService.GetCountries();
+        _selectedCountry = countries
+            .Where(x => x.countryId == (long)e.Value)
+            .FirstOrDefault();
+        await _messagingService.Add("Country id selected: " + e.Value);
+    }
+
+    private async Task Reorder(string column)
+    {
+        if (column == "Id")
+        {
+            if (_idAscending == null)
+                _idAscending = true;
+            else
+                _idAscending = !_idAscending;
+            if (_idAscending == true)
+                _countries = _countries
+                    .OrderBy(x => x.countryId)
+                    .ToList();
+            else
+                _countries = _countries
+                    .OrderByDescending(x => x.countryId)
+                    .ToList();
+        }
+        else if (column == "CountryName")
+        {
+            if (_countryNameAscending == null)
+                _countryNameAscending = true;
+            else
+                _countryNameAscending = !_countryNameAscending;
+            if (_countryNameAscending == true)
+                _countries = _countries
+                    .OrderBy(x => x.countryName)
+                    .ToList();
+            else
+                _countries = _countries
+                    .OrderByDescending(x => x.countryName)
+                    .ToList();
+        }
+        else if (column == "CountryCode")
+        {
+            if (_countryCodeAscending == null)
+                _countryCodeAscending = true;
+            else
+                _countryCodeAscending = !_countryCodeAscending;
+            if (_countryCodeAscending == true)
+                _countries = _countries
+                    .OrderBy(x => x.countryName)
+                    .ToList();
+            else
+                _countries = _countries
+                    .OrderByDescending(x => x.countryName)
+                    .ToList();
+        }
+        StateHasChanged();
+    }
+}
+ 
+

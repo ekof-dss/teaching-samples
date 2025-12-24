@@ -1,0 +1,171 @@
+@page "/actordetail/{Id}"
+
+@inject IActorService _actorService
+@inject ICountryService _countryService
+@inject IMessagingService _messagingService
+
+@if (@SelectedActor != null)
+{
+    @if (@_currentMode == @Mode.View)
+    {
+        <div class="row border my-2 p-2">
+            <h2 class="text-success">
+                Details for <span class="text-primary"> @SelectedActor.firstName @SelectedActor.lastName.ToUpper()</span>
+            </h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-borderless">
+                <tr>
+                    <td>
+                        id:
+                    </td>
+                    <td> @SelectedActor.actorId </td>
+                </tr>
+                <tr>
+                    <td>
+                        first name:
+                    </td>
+                    <td>@SelectedActor.firstName</td>
+                </tr>
+                <tr>
+                    <td>
+                        last name:
+                    </td>
+                    <td>@SelectedActor.lastName</td>
+                </tr>
+                <tr>
+                    <td>
+                        country:
+                    </td>
+                    <td>@CountryForSelectedActor.countryName (@CountryForSelectedActor.countryCode) </td>
+                </tr>
+                <tr>
+                    <td>
+                        date of birth:
+                    </td>
+                    <td>
+                        @SelectedActor.dateOfBirth?.ToString("MM/dd/yyyy")
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="row my-2 p-2">
+            <div class="col align-self-lg-center">
+                <button type="button" class="btn btn-primary" @onclick="Edit"> Edit</button>
+            </div>
+        </div>
+    }
+    @if (@_currentMode == @Mode.Edit)
+    {
+        <div class="row my-2 p-2">
+            <h2>Edit data for @SelectedActor.firstName @SelectedActor.lastName.ToUpper()</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-borderless">
+                <tr>
+                    <td>
+                        <label class="text-danger"> id: </label>
+                    </td>
+                    <td>
+                        <label class="text-sucess"> @SelectedActor.actorId </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="text-danger"> first name: </label>
+                    </td>
+                    <td>
+                        <input class="text-success" @bind="SelectedActor.firstName" placeholder="FirstName">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="text-danger"> last name: </label>
+                    </td>
+                    <td>
+                        <input class="text-success" @bind="SelectedActor.lastName" placeholder="LastName">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="text-danger"> country: </label>
+                    </td>
+                    <td>
+                        <select class="text-success" @bind="SelectedActor.countryId">
+                            @foreach (var c in _countries)
+                            {
+                                <option value=@c.countryId>@c.countryName (@c.countryCode)</option>
+                            }
+                        </select>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label class="text-danger"> date of birth: </label>
+                    </td>
+                    <td>
+                        <input class="text-success" type="date" @bind="SelectedActor.dateOfBirth" placeholder="DateOfBirth">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="row my-2 p-2">
+            <div class="col align-self-lg-center">
+                <button type="button" class="btn btn-primary" @onclick="Save"> Save</button>
+                <button type="button" class="btn btn-primary" @onclick="Cancel"> Cancel</button>
+            </div>
+        </div>
+    }
+}
+
+@code
+{
+    enum Mode { View, Edit };
+
+    Mode _currentMode = Mode.View;
+    Actor SelectedActor { get; set; }
+    Country CountryForSelectedActor { get; set; }
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private List<Actor> _actors;
+    private List<Country> _countries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _actors = await _actorService.GetActors();
+        _countries = await _countryService.GetCountries();
+        if (_actors == null)
+            return;
+        if (_actors.Count(x => x.actorId == long.Parse(Id)) == 0)
+            return;
+        SelectedActor = _actors.First(x => x.actorId == long.Parse(Id));
+        CountryForSelectedActor = _countries.First(x => x.countryId == SelectedActor.countryId);
+    }
+
+    private async Task Edit()
+    {
+        _currentMode = Mode.Edit;
+        await _messagingService.Add("ActorDetail::Actor edited: " + SelectedActor.firstName + " "
+        + SelectedActor.lastName);
+    }
+
+    private async Task Save()
+    {
+        _currentMode = Mode.View;
+        await _actorService.Update(SelectedActor);
+        CountryForSelectedActor = _countries.First(x => x.countryId == SelectedActor.countryId);
+        await _messagingService.Add("ActorDetail::Actor saved: " + SelectedActor.firstName + " "
+        + SelectedActor.lastName);
+    }
+
+    private async Task Cancel()
+    {
+        _currentMode = Mode.View;
+        await _messagingService.Add("ActorDetail::Actor changes canceled: " + SelectedActor.firstName + " "
+        + SelectedActor.lastName);
+    }
+
+}

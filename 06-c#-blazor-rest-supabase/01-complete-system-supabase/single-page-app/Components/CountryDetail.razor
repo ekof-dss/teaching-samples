@@ -1,0 +1,104 @@
+@page "/countrydetail/{Id}"
+
+@inject ICountryService _countryService
+@inject IMessagingService _messagingService
+
+@if (@SelectedCountry != null)
+{
+    @if (@_currentMode == @Mode.View)
+    {
+        <div class="row border my-2 p-2">
+            <h2 class="text-success">Details for <span class="text-primary"> @SelectedCountry.countryName ( @SelectedCountry.countryCode )</span></h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-borderless">
+                <tr>
+                    <td>id:</td>
+                    <td>@SelectedCountry.countryId</td>
+                </tr>
+                <tr>
+                    <td>name: </td>
+                    <td>@SelectedCountry.countryName</td>
+                </tr>
+                <tr>
+                    <td>code: </td>
+                    <td>@SelectedCountry.countryCode</td>
+                </tr>
+            </table>
+        </div>
+        <div class="row my-2 p-2">
+            <div class="col align-self-lg-center">
+                <button type="button" class="btn btn-primary" @onclick="Edit"> Edit</button>
+            </div>
+        </div>
+    }
+    @if (@_currentMode == @Mode.Edit)
+    {
+        <div class="row border my-2 p-2">
+            <h2 class="text-success">Edit data for <span class="text-primary"> @SelectedCountry.countryName ( @SelectedCountry.countryCode )</span></h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-borderless">
+                <tr>
+                    <td>id:</td>
+                    <td>@SelectedCountry.countryId</td>
+                </tr>
+                <tr>
+                    <td>name: </td>
+                    <td><input @bind="SelectedCountry.countryName" placeholder="Name"></td>
+                </tr>
+                <tr>
+                    <td>code: </td>
+                    <td><input @bind="SelectedCountry.countryCode" placeholder="Code"></td>
+                </tr>
+            </table>
+        </div>
+        <div class="row my-2 p-2">
+            <div class="col align-self-lg-center">
+                <button type="button" class="btn btn-primary" @onclick="Save"> Save</button>
+                <button type="button" class="btn btn-primary" @onclick="Cancel"> Cancel</button>
+            </div>
+        </div>
+    }
+}
+
+@code
+{
+    enum Mode { View, Edit };
+
+    Mode _currentMode = Mode.View;
+
+    [Parameter]
+    public string Id { get; set; }
+
+
+    public Country SelectedCountry { get; set; }
+
+    private List<Country> _countries;
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = await _countryService.GetCountries();
+        SelectedCountry = _countries.First(x => x.countryId == Convert.ToInt64(Id));
+    }
+
+    private async Task Edit()
+    {
+        _currentMode = Mode.Edit;
+        await _messagingService.Add("CountryDetail::Country edited: " + SelectedCountry.countryName + " ("
+        + SelectedCountry.countryId + ")");
+    }
+
+    private async Task Save()
+    {
+        _currentMode = Mode.View;
+        await _countryService.Update(SelectedCountry);
+        await _messagingService.Add("CountryDetail::Country saved: " + SelectedCountry.countryName + " ("
+        + SelectedCountry.countryId + ")");
+    }
+
+    private async Task Cancel()
+    {
+        _currentMode = Mode.View;
+        await _messagingService.Add("CountryDetail::Country changes canceled: " + SelectedCountry.countryName + " (" + SelectedCountry.countryCode + ")");
+    }
+}

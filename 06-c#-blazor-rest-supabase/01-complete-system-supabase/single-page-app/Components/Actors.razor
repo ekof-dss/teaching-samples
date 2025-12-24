@@ -1,0 +1,196 @@
+@page "/actors"
+@using project.ViewModels
+
+@inject IActorService _actorService
+@inject ICountryService _countryService
+@inject IMessagingService _messagingService
+@inject NavigationManager _navigationManager
+
+@if (_actors == null)
+{
+    <p><em>Loading actors...</em></p>
+}
+else
+{
+    <div class="container">
+        <h2 class="bg-primary text-white">All enlisted actors</h2>
+
+        <table class="table">
+            <thead class="thead-dark">
+                <tr>
+                    <th class="underlineHover" @onclick="@(() => Reorder("Id"))">Id</th>
+                    <th class="underlineHover" @onclick="@(() => Reorder("FirstName"))">First name</th>
+                    <th class="underlineHover" @onclick="@(() => Reorder("LastName"))">Last name</th>
+                    <th class="underlineHover" colspan="2" @onclick="@(() => Reorder("CountryName"))">Country name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        &nbsp;
+                    </td>
+                    <td>
+                        <input @bind="FirstName" />
+                    </td>
+                    <td>
+                        <input @bind="LastName" />
+                    </td>
+                    <td>
+                        <select @onchange="ConutryChanged">
+                            @foreach (var c in _countries)
+                            {
+                                <option value=@c.countryId>@c.countryName</option>
+                            }
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-primary" @onclick="Add">Add</button>
+                    </td>
+                </tr>
+                @foreach (var a in _actors)
+                {
+                    <tr>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(a))">
+                                <span class="badge">@a.id</span>
+                            </span>
+
+                        </td>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(a))">
+                                @a.first_name
+                            </span>
+                        </td>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(a))"> @a.last_name </span>
+                        </td>
+                        <td>
+                            <span class="underlineHover" @onclick="@(()=>OnSelect(a))"> @a.country_name </span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn btn-primary" @onclick="@(()=>Delete(a.id))">x</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code
+{
+    private List<ActorCountryDto> _actors;
+    private List<Country> _countries;
+
+    private long _selectedCountryId;
+
+    private bool? _idAscending = null;
+    private bool? _firstNameAscending = null;
+    private bool? _lastNameAscending = null;
+    private bool? _countryNameAscending = null;
+
+    private string FirstName { get; set; } = "";
+    private string LastName { get; set; } = "";
+    private string Country { get; set; } = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _countries = await _countryService.GetCountries();
+        _actors = await _actorService.GetActorsWithCountry();
+    }
+
+    private async Task OnSelect(ActorCountryDto actor)
+    {
+        await _messagingService.Add("ActorComponent::Actor selected: " + actor.first_name + " "
+        + actor.last_name);
+        _navigationManager.NavigateTo("/actordetail/" + actor.id);
+    }
+
+    private async Task Add()
+    {
+        await _actorService.Add(FirstName, LastName, _selectedCountryId);
+        _actors = await _actorService.GetActorsWithCountry();
+        await _messagingService.Add("ActorComponent::Actor added: "
+            + FirstName + " " + LastName);
+    }
+
+    private async Task Delete(long actorId)
+    {
+        await _actorService.Delete(actorId);
+        _actors = await _actorService.GetActorsWithCountry();
+        await _messagingService.Add("ActorComponent::Actor deleted: ");
+    }
+
+    private async Task ConutryChanged(ChangeEventArgs e)
+    {
+        _selectedCountryId = long.Parse(e.Value.ToString());
+        await _messagingService.Add("ActorComponent::Country selected: "
+        + e.Value.ToString());
+    }
+
+    private async Task Reorder(string column)
+    {
+        if (column == "Id")
+        {
+            if (_idAscending == null)
+                _idAscending = true;
+            else
+                _idAscending = !_idAscending;
+            if (_idAscending == true)
+                _actors = _actors
+                    .OrderBy(x => x.id)
+                    .ToList();
+            else
+                _actors = _actors
+                    .OrderByDescending(x => x.id)
+                    .ToList();
+        }
+        else if (column == "FirstName")
+        {
+            if (_firstNameAscending == null)
+                _firstNameAscending = true;
+            else
+                _firstNameAscending = !_firstNameAscending;
+            if (_firstNameAscending == true)
+                _actors = _actors
+                    .OrderBy(x => x.first_name)
+                    .ToList();
+            else
+                _actors = _actors
+                    .OrderByDescending(x => x.first_name)
+                    .ToList();
+        }
+        else if (column == "LastName")
+        {
+            if (_lastNameAscending == null)
+                _lastNameAscending = true;
+            else
+                _lastNameAscending = !_lastNameAscending;
+            if (_lastNameAscending == true)
+                _actors = _actors
+                    .OrderBy(x => x.last_name)
+                    .ToList();
+            else
+                _actors = _actors
+                    .OrderByDescending(x => x.last_name)
+                    .ToList();
+        }
+        else if (column == "CountryName")
+        {
+            if (_countryNameAscending == null)
+                _countryNameAscending = true;
+            else
+                _countryNameAscending = !_countryNameAscending;
+            if (_countryNameAscending == true)
+                _actors = _actors
+                    .OrderBy(x => x.country_name)
+                    .ToList();
+            else
+                _countries = _countries
+                    .OrderByDescending(x => x.countryName)
+                    .ToList();
+        }
+        StateHasChanged();
+    }
+
+}
