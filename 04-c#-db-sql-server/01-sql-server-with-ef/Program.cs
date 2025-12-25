@@ -48,13 +48,15 @@ namespace HelloConsoleEF
                     case '4':
                         Console.WriteLine("Enter the name of the country.");
                         string countryNameToAdd = Console.ReadLine();
-                        AddCountry(countryNameToAdd);
+                        Console.WriteLine("Enter the code of the country.");
+                        string countryCodeToAdd = Console.ReadLine();
+                        AddCountry(countryNameToAdd, countryCodeToAdd);
                         break;
                     case '5':
-                        Console.WriteLine("Enter the last name of the actor.");
-                        string actorLastName = Console.ReadLine();
                         Console.WriteLine("Enter the first name of the actor.");
                         string actorFirstName = Console.ReadLine();
+                        Console.WriteLine("Enter the last name of the actor.");
+                        string actorLastName = Console.ReadLine();
                         DisplayConutries();
                         Console.WriteLine("Enter the ID of the country (among displayed).");
                         int idCountry = Convert.ToInt32(Console.ReadLine());
@@ -69,7 +71,7 @@ namespace HelloConsoleEF
                             Convert.ToInt32(dateParts[1]),
                             Convert.ToInt32(dateParts[2])
                             );
-                            AddActor(actorLastName, actorFirstName, idCountry, dateOfBirth);
+                            AddActor(actorFirstName, actorLastName, idCountry, dateOfBirth);
                         }
                         break;
                     default:
@@ -82,7 +84,7 @@ namespace HelloConsoleEF
 
         private static void DisplayConutries()
         {
-            using (var context = new ProbaContext())
+            using (var context = new ActorsContext())
             {
                 var countries = context.Country;
                 var data = new StringBuilder();
@@ -91,13 +93,14 @@ namespace HelloConsoleEF
                     data.AppendLine("---");
                     data.AppendLine($"CountryId: {c.CountryId}");
                     data.AppendLine($"Name: {c.Name}");
+                    data.AppendLine($"Code: {c.Code}");
                 }
                 Console.WriteLine(data.ToString());
             }
         }
         private static void DisplayActors()
         {
-            using (var context = new ProbaContext())
+            using (var context = new ActorsContext())
             {
                 var actors = context.Actor.Include(p => p.Country);
                 var data = new StringBuilder();
@@ -107,6 +110,7 @@ namespace HelloConsoleEF
                     data.AppendLine($"Last name: {a.LastName}");
                     data.AppendLine($"First name: {a.FirstName}");
                     data.AppendLine($"Country: {a.Country.Name}");
+                    data.AppendLine($"Country code: {a.Country.Code}");
                     data.AppendLine($"Date of birth: {a.DateOfBirth}");
                 }
                 Console.WriteLine(data.ToString());
@@ -115,50 +119,55 @@ namespace HelloConsoleEF
 
         private static void DisplayActors(string countryName)
         {
-            using (var context = new ProbaContext())
+            using (var context = new ActorsContext())
             {
-                var listaGradId = context.Grad.Where(x => x.Naziv.Equals(countryName))
-                .Select(x => x.Id).ToList();
-                if (listaGradId.Count <= 0)
+                var listCountryId = context.Country.Where(x => x.Name.Equals(countryName))
+                .Select(x => x.CountryId).ToList();
+                if (listCountryId.Count <= 0)
                 {
-                    Console.WriteLine("Ovog grada nema u bazi!");
+                    Console.WriteLine("This conutry does not exists in database.");
                     return;
                 }
-                int gradId = listaGradId[0];
+                long countryId = listCountryId[0];
 
-                var skole = context.Skola.Where(x => x.GradId == gradId)
-                .Include(x => x.Grad);
+                var actors = context.Actor.Where(x => x.CountryId == countryId)
+                .Include(x => x.Country);
 
                 var data = new StringBuilder();
-                foreach (var s in skole)
+                foreach (var a in actors)
                 {
-                    data.AppendLine($"Name: {s.Naziv}");
-                    data.AppendLine($"Adresa: {s.Adresa}");
+                    data.AppendLine("---");
+                    data.AppendLine($"Last name: {a.LastName}");
+                    data.AppendLine($"First name: {a.FirstName}");
+                    data.AppendLine($"Country name: {a.Country.Name}");
+                    data.AppendLine($"Country code: {a.Country.Code}");
+                    data.AppendLine($"Date of birth: {a.DateOfBirth}");
                 }
                 Console.WriteLine(data.ToString());
             }
 
         }
-        private static void AddCountry(string imeGrada)
+        private static void AddCountry(string countryName, string countryCode)
         {
-            using (var context = new ProbaContext())
+            using (var context = new ActorsContext())
             {
-                Country g = new Country();
-                g.Name = imeGrada;
-                context.Grad.Add(g);
+                Country c = new Country();
+                c.Name = countryName;
+                c.Code = countryCode;
+                context.Country.Add(c);
                 context.SaveChanges();
             }
         }
 
-        private static void AddActor(string imeSkole, string adresaSkole, int idGrada, DateOnly? dob)
+        private static void AddActor(string firstName, string lastName, int countryId, DateOnly? dob)
         {
-            using (var context = new ProbaContext())
+            using (var context = new ActorsContext())
             {
-                Skola s = new Skola();
-                s.Naziv = imeSkole;
-                s.Adresa = adresaSkole;
-                s.GradId = idGrada;
-                context.Skola.Add(s);
+                Actor a = new Actor();
+                a.FirstName = firstName;
+                a.LastName = lastName;
+                a.CountryId = countryId;
+                context.Actor.Add(a);
                 context.SaveChanges();
             }
         }

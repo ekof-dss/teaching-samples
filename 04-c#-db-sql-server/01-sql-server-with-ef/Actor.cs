@@ -8,23 +8,25 @@ using System.Threading.Tasks;
 namespace HelloConsoleEF
 {
 
-    [Table("Actor")]
+    [Table("actor")]
     public class Actor
     {
         [Key]
+        [Column("actor_id", TypeName = "bigint")]
         public long ActorId { get; set; }
 
         [Required]
-        [Column("last_name", TypeName = "varchar(50)")]
+        [Column("last_name", TypeName = "nvarchar(50)")]
         public string LastName { get; set; }
 
         [Required]
-        [Column("first_name", TypeName = "varchar(50)")]
+        [Column("first_name", TypeName = "nvarchar(50)")]
         public string? FirstName { get; set; }
 
+        [Column("country_id", TypeName = "bigint")]
         public long? CountryId { get; set; }
 
-
+        [Column("date_of_birth", TypeName = "date")]
         public DateTime? DateOfBirth { get; set; }
 
         public virtual Country? Country { get; set; }

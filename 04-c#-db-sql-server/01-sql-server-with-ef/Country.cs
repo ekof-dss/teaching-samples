@@ -7,13 +7,20 @@ using System.Threading.Tasks;
 
 namespace HelloConsoleEF
 {
-    [Table("Country")]
+    [Table("country")]
     public class Country
     {
         [Key]
-        public int CountryId { get; set; }
+        [Column("country_id", TypeName="bigint")]
+        public long CountryId { get; set; }
 
+        [Required]
+        [Column("country_name")]
         public string Name { get; set; }
+
+        [Required]
+        [Column("country_code")]
+        public string Code { get; set; }
 
         public virtual ICollection<Actor> Actors { get; set; }
     }

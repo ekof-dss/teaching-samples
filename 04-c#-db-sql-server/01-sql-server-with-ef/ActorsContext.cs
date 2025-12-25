@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HelloConsoleEF
 {
-  public class ProbaContext : DbContext
+  public class ActorsContext : DbContext
   {
     public DbSet<Actor> Actor { get; set; }
 
@@ -11,7 +11,7 @@ namespace HelloConsoleEF
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-      optionsBuilder.UseSqlServer("Data Source=localhost;database=skole;User CountryId=sa;Password=MsSql@123;TrustServerCertificate=True;Encrypt=False;Connect Timeout=30");
+      optionsBuilder.UseSqlServer("Server=localhost,1433; Database=DSS.Actors; Trusted_Connection=True; TrustServerCertificate=True; Connect Timeout=10");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
