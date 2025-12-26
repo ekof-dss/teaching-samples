@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace ActorsRestService.Models
-{
+{  
     [Table("country")]
     public class Country
     {
