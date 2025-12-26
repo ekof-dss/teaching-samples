@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ActorsRestService.Models
 {  
-    [Table("country")]
+    [Table("country")] 
     public class Country
     {
         [Key]
