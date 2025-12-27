@@ -14,6 +14,23 @@ namespace ActorsRestService.Data
         {
         }
 
-        public DbSet<ActorsRestService.Models.Actor> Actor { get; set; } = default!;
+        
+        public DbSet<Actor> Actor { get; set; } = default!;
+
+        public DbSet<Country> Country { get; set; } = default!;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            base.OnConfiguring(optionsBuilder);
+        }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Actor>(entity =>
+            { 
+                entity.HasOne(d => d.Country)
+                    .WithMany(p => p.Actors);
+            });
+        }
     }
 }

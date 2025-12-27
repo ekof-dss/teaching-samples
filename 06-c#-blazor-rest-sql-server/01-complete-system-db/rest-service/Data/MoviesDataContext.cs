@@ -52,7 +52,7 @@ namespace project.Data
                     .HasMaxLength(255)
                     .IsRequired();
                 entity.Property(e => e.DateOfBirth)
-                    .HasColumnName("BirthDate");
+                    .HasColumnName("DateOfBirth");
                 entity.HasOne(d => d.Country)
                     .WithMany(p => p.Actors)
                     .HasForeignKey(d => d.Id)

@@ -8,25 +8,25 @@ using System.Threading.Tasks;
 namespace ActorsRestService.Models
 {
 
-    [Table("actor")]
+    [Table("Actor")]
     public class Actor
     {
         [Key]
-        [Column("actor_id", TypeName = "bigint")]
+        [Column("ActorId", TypeName = "bigint")]
         public long ActorId { get; set; }
 
         [Required]
-        [Column("last_name", TypeName = "nvarchar(50)")]
+        [Column("LastName", TypeName = "nvarchar(50)")]
         public string LastName { get; set; }
 
         [Required]
-        [Column("first_name", TypeName = "nvarchar(50)")]
-        public string? FirstName { get; set; }
+        [Column("FirstName", TypeName = "nvarchar(50)")]
+        public string FirstName { get; set; }
 
-        [Column("country_id", TypeName = "bigint")]
-        public long? CountryId { get; set; }
+        [Column("CountryId", TypeName = "bigint")]
+        public long CountryId { get; set; }
 
-        [Column("date_of_birth", TypeName = "date")]
+        [Column("DateOfBirth", TypeName = "datetime")]
         public DateTime? DateOfBirth { get; set; }
 
         public virtual Country? Country { get; set; }

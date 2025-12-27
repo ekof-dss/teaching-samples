@@ -7,19 +7,19 @@ using System.Threading.Tasks;
 
 namespace ActorsRestService.Models
 {  
-    [Table("country")] 
+    [Table("Country")] 
     public class Country
     {
         [Key]
-        [Column("country_id", TypeName="bigint")]
+        [Column("CountryId", TypeName="bigint")]
         public long CountryId { get; set; }
 
         [Required]
-        [Column("country_name")]
+        [Column("CountryName")]
         public string Name { get; set; }
 
         [Required]
-        [Column("country_code")]
+        [Column("CountryCode")]
         public string Code { get; set; }
 
         public virtual ICollection<Actor> Actors { get; set; }
